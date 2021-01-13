@@ -51,7 +51,7 @@ bTree* create_tree(int order) {
 	bTree* tree;
 	tree = (struct bTree*)malloc(sizeof(struct bTree));
 	//tree.order = order;
-	tree->root = create_node(order, true);
+	tree->root = create_node(true);
 	tree->node_count = 1;
 	return tree;
 
@@ -60,18 +60,18 @@ bTree* create_tree(int order) {
 // Methods for Insert Operation
 void split(btNode* x, int i) {
 	printf("starting split %dth node\n", i);
-	btNode* y;// 분할해줄 x의 자식 노드
-	btNode* z;// 새로 생성될 x의 자식 노드
+	btNode* y;// node to split
+	btNode* z;// new node next to y node
 	y = x->child_pointer[i];
 	z = create_node(y->isLeaf);
 	z->key_num = t - 1;
 
-	// y의 키들 중 t-1개를 z로 옮긴다.
+	// move t-1 keys from y node to z node
 	for (int j = 0; j < t - 1; j++) {
 		z->keys[j] = y->keys[j + t];
 	}
 
-	//y가 leaf가 아니라면 자식노드가 존재하므로 자식 노드들도 t-1개 옮긴다.
+	//if y is not leaf : move t-1 child pointers from y node to z node
 	if (!y->isLeaf) {
 		for (int j = 0; j < t; j++) {
 			z->child_pointer[j] = y->child_pointer[j + t];
@@ -79,13 +79,12 @@ void split(btNode* x, int i) {
 	}
 	y->key_num = t - 1;
 
-	//자식 한개가 x로 올라가야 하므로, x의 기존 자식들을 다 한칸씩 오른쪽으로 밀어준다.
+	//z is new child node of x, existing keys and child pointers should move to the right
 	for (int j = x->key_num; j >= i; j--) {
 		x->child_pointer[j + 1] = x->child_pointer[j];
 	}
 	x->child_pointer[i+1] = z;
 
-	//키 한개가 x로 올라가야 하므로, x의 기존 키들을 다 한칸씩 오른쪽으로 밀어준다.
 	for (int j = x->key_num - 1; j >= i; j--) {
 		x->keys[j + 1] = x->keys[j];
 	}
@@ -107,8 +106,7 @@ void insertNonFull(btNode* x, int k) {
 		while (i >= 0 && k < x->keys[i-1]) {
 			i = i - 1;
 		}
-		//i = i + 1;
-		if (x->child_pointer[i]->key_num == 2 * t - 1) {// ==이 아닌 >=로 바꿔주자
+		if (x->child_pointer[i]->key_num >= 2 * t - 1) {
 			split(x, i);
 			if (k > x->keys[i]) {
 				i += 1;
@@ -117,12 +115,13 @@ void insertNonFull(btNode* x, int k) {
 		insertNonFull(x->child_pointer[i], k);\
 	}
 }
-void insert(bTree* tree, int k) { //tree에 k라는 key를 넣고 싶다.
+void insert(bTree* tree, int k) { 
+	//insert 'k' into tree k
 	btNode* r = tree->root;
 	printf("starting insert %d to tree\n", k);
-	//root부터 재귀적으로 들어가며 가득차있는지 확인한다.
+	//recursively execute from root node
 	if (r->key_num == order - 1) {
-		//root가 가득 차있다면, 새로운 노드를 생성하여 루트로 만든 후, 키값을 올린다.
+		//if root node is full, create new node and split
 		btNode* s;
 		s = create_node(false);
 		tree->root = s;
@@ -327,6 +326,8 @@ int deleteNode(btNode* x, int k, bTree* tree) {
 			if (tree->root->key_num == 0) {
 				tree->root = x->child_pointer[i];
 				deleteNode(x->child_pointer[i], k, tree);
+				free(x->child_pointer);
+				free(x->keys);
 				free(x);
 				}
 			else {
@@ -376,6 +377,8 @@ int deleteNode(btNode* x, int k, bTree* tree) {
 				if (tree->root->key_num == 0) {
 					tree->root = x->child_pointer[i];
 					deleteNode(x->child_pointer[i], k, tree);
+					free(x->child_pointer);
+					free(x->keys);
 					free(x);
 				}
 				else {
@@ -388,6 +391,8 @@ int deleteNode(btNode* x, int k, bTree* tree) {
 				if (tree->root->key_num == 0) {
 					tree->root = x->child_pointer[i - 1];
 					deleteNode(x->child_pointer[i - 1], k, tree);
+					free(x->child_pointer);
+					free(x->keys);
 					free(x);
 				}
 				else {
@@ -462,7 +467,11 @@ main() {
 	t = order / 2;
 	bTree* tr = create_tree(order);
 	
-	
+
+	for (int j = 1; j < 11; j++) {
+		insert(tr, j);
+	}
+	/*
 	for (int j = 1; j <111; j++) {
 		insert(tr, j);
 	}
@@ -472,7 +481,17 @@ main() {
 	for (int j = 0; j < 111; j = j + 2) {
 		deleteCheck(tr, j);
 	}
+	int arr[1000];
+	for (int j = 0; j <= 999; j++) {
+		int random = rand();
+		insert(tr, random);
+		arr[j] = random;
+	}
 
+	for (int j = 999; j >=0; j--) {
+		deleteCheck(tr, arr[j]);
+	}
+	*/
 	while (true) {
 		printf("Input Operation : (Input : i, Delete : d, Search : s, Print : p)\n");
 		scanf_s("\n%c", &type, 1);
