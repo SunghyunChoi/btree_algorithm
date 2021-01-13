@@ -6,9 +6,9 @@
 
 int order, t;
 
-// Struct Definition : Node, Tree, Search_Result
+// Struct Definition : Node, Tree, Search_Result, find_sibling result
 typedef struct btNode {
-
+	//Struct of a btree node
 	int key_num;
 	int* keys;
 	struct btNode** child_pointer;
@@ -16,23 +16,27 @@ typedef struct btNode {
 
 }btNode;
 typedef struct searchResult {
-
+	//return value of function searchNode()
 	btNode* node;
 	int index;
 	bool result;
 
 }sr;
 typedef struct bTree {
-
+	//Struct of a btree
 	//int order;
 	struct btNode* root;
 	int node_count;
 
 }bTree;
 typedef struct find_sibs {
+	//return value of function find_siblings()
+	//direction : 1 = right, -1 = left
+	//result : true = borrow, false = merge
 	int direction;
 	bool result;
 }fs;
+
 // Initialization
 btNode* create_node(bool isLeaf_) {
 	btNode* node;
@@ -47,7 +51,6 @@ btNode* create_node(bool isLeaf_) {
 	return node;
 }
 bTree* create_tree(int order) {
-
 	bTree* tree;
 	tree = (struct bTree*)malloc(sizeof(struct bTree));
 	//tree.order = order;
@@ -92,6 +95,7 @@ void split(btNode* x, int i) {
 	x->key_num = x->key_num + 1;
 }
 void insertNonFull(btNode* x, int k) {
+	//Insert k into node Nonfull node x
 	int i = x->key_num;
 	if (x->isLeaf) {
 		//look for index to input k
@@ -135,9 +139,10 @@ void insert(bTree* tree, int k) {
 		insertNonFull(r, k);
 	}
 }
-// Methods for Search Operation
 
+// Methods for Search Operation
 sr* searchNode(btNode* x, int k) {
+	//search key k in a subtree whose root node is x
 	int i = 0;
 	while (i<x->key_num && k > x->keys[i]) {
 		i += 1;
@@ -158,7 +163,8 @@ sr* searchNode(btNode* x, int k) {
 		return searchNode(x->child_pointer[i], k);
 	}
 }
-int find_succ(btNode* x) {//find successor from the sub-tree starting with the left node
+int find_succ(btNode* x) {
+	//find successor in the a sub-tree whose root node is x
 	printf("Finding successor\n");
 	int succ;
 	// If x is Leaf node, return the key on the right end. else, recursively find in the childs.
@@ -175,7 +181,8 @@ int find_succ(btNode* x) {//find successor from the sub-tree starting with the l
 		find_succ(x->child_pointer[0]);
 	}
 }
-int find_pred(btNode* x) {//find predecessor from the sub-tree starting with the right node
+int find_pred(btNode* x) {
+	//find predecessor in a sub-tree whose root node is x
 	printf("Finding predecessor\n");
 	int pred;
 	// If x is Leaf node, return the key on the left end. else, recursively find in the childs.
@@ -190,7 +197,7 @@ int find_pred(btNode* x) {//find predecessor from the sub-tree starting with the
 	}
 }
 fs* find_siblings(btNode* x, int i) { 
-	//Given node x.ci, look around and see if borrow/merge is possible. 
+	//Given node x->child_pointer[i], look around and see if borrow/merge is possible. 
 	fs* find_result = (fs*)malloc(sizeof(fs));
 	//direction 1 == right, -1 == left
 	//result true == merge, false == borrow
@@ -259,8 +266,8 @@ void mergeRightNode(btNode* x, int i) {
 	btNode* right_node = x->child_pointer[i + 1];
 	int left_keynum = left_node->key_num;
 	int right_keynum = right_node->key_num;
-
-	left_node->keys[left_keynum] = x->keys[i];//add k to left node(x->keys[i] == k)
+	//add k to left node(x->keys[i] == k)
+	left_node->keys[left_keynum] = x->keys[i];
 	//move keys from right node to left node
 	for (int j = 0; j < right_keynum; j++) {
 		left_node->keys[left_keynum + j + 1] = right_node->keys[j];
@@ -279,10 +286,13 @@ void mergeRightNode(btNode* x, int i) {
 		x->keys[j - 1] = x->keys[j];
 	}
 	x->key_num -= 1;
+	free(right_node->child_pointer);
+	free(right_node->keys);
 	free(right_node);
 }
 int deleteNode(btNode* x, int k, bTree* tree) {
-	
+	//Delete k in a subtree whose root node is x
+	//tree is transferred to check if root node is empty
 	int i;
 
 	//if x is a leaf node, find k from x and return 1
@@ -337,7 +347,6 @@ int deleteNode(btNode* x, int k, bTree* tree) {
 	}
 	else {
 		// Case 3 : K is not in node X
-		
 		// increase i if i should visit the last child node
 		if (k > x->keys[i]) {
 			i += 1;
@@ -423,9 +432,8 @@ int deleteNode(btNode* x, int k, bTree* tree) {
 	}
 
 }
-
 int deleteCheck(bTree* x, int k) {
-	//Delete k from tree x, if k is not in tree x, 
+	//Delete k from tree x, if k is not in tree x, return 0
 	sr* search_result;
 	btNode* r = x->root;
 	search_result = searchNode(r, k);
@@ -467,7 +475,7 @@ main() {
 	t = order / 2;
 	bTree* tr = create_tree(order);
 	
-
+	//////////////// Test cases ////////////////
 	for (int j = 1; j < 11; j++) {
 		insert(tr, j);
 	}
@@ -492,6 +500,8 @@ main() {
 		deleteCheck(tr, arr[j]);
 	}
 	*/
+	//////////////// Test cases ////////////////
+
 	while (true) {
 		printf("Input Operation : (Input : i, Delete : d, Search : s, Print : p)\n");
 		scanf_s("\n%c", &type, 1);
@@ -541,7 +551,5 @@ main() {
 		else if (type == 'x') {
 			break;
 		}
-
 	}
-
 }
