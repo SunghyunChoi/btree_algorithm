@@ -4,6 +4,8 @@
 #include<stdlib.h>
 #include<time.h>
 
+//order = max degree
+//t = min degree
 int order, t;
 
 // Struct Definition : Node, Tree, Search_Result, find_sibling result
@@ -467,8 +469,16 @@ void print_all(btNode* x, int depth) {
 
 main() {
 
-	printf("Input Max Degree : \n");
-	scanf_s("%d", &order);
+	while (1) {
+		printf("Input Max Degree : \n");
+		scanf_s("%d", &order);
+		if (order >= 4 && order % 2 == 0) {
+			break;
+		}
+		else {
+			puts("wrong order");
+		}
+	}
 	int insert_num=0;
 	char type;
 	int k;
@@ -508,7 +518,7 @@ main() {
 
 
 		if (type == 'i') {
-			printf("Write the number to insert and press Enter\n");
+			printf("Write the number to insert and press Enter. Type -1 to exit\n");
 			while (true) {
 				scanf_s("%d", &insert_num);
 				if (insert_num == -1) {
